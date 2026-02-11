@@ -6,7 +6,15 @@ const upload = multer({
   limits: { fileSize: 10 * 1024 * 1024 }
 });
 
-function setupRoutes(app, taskController, noteController, healthController, userController) {
+function setupRoutes(
+  app,
+  taskController,
+  noteController,
+  healthController,
+  userController,
+  authController
+) {
+
   app.get('/tasks', taskController.getAll);
   app.post('/tasks', taskController.create);
   app.get('/tasks/item', taskController.getById);
@@ -34,6 +42,18 @@ function setupRoutes(app, taskController, noteController, healthController, user
 
   app.get('/profile', userController.viewProfile);
   app.post('/profile/avatar', upload.single('avatar'), userController.uploadAvatar);
+
+
+    // AUTH (JWT)
+    app.post('/api/auth/register', authController.register);
+    app.post('/api/auth/login', authController.login);
+
+    
+
+
+
+
+  
 }
 
 module.exports = setupRoutes;

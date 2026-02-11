@@ -3,6 +3,8 @@ const express = require('express');
 const path = require('path');
 const { connectDB, getDB } = require('./config/database');
 
+const AuthController = require('./controllers/authController');
+
 const TaskRepository = require('./repositories/TaskRepository');
 const NoteRepository = require('./repositories/NoteRepository');
 const SleepRepository = require('./repositories/SleepRepository');
@@ -55,13 +57,33 @@ async function start() {
     const activityRepo = new ActivityRepository(db.collection('activity'));
     const activityService = new ActivityService(activityRepo);
 
-    const healthController = new HealthController(sleepService, nutritionService, activityService);
+    const healthController = new HealthController(
+      sleepService,
+      nutritionService,
+      activityService
+    );
 
     const userRepo = new UserRepository(db.collection('users'));
     const userService = new UserService(userRepo);
-    const userController = new UserController(taskService, noteService, userService);
+    const userController = new UserController(
+      taskService,
+      noteService,
+      userService
+    );
 
-    setupRoutes(app, taskController, noteController, healthController, userController);
+    // ВОТ ТУТ ПРАВИЛЬНО СОЗДАЁМ authController
+    const authController = new AuthController(userService);
+
+    
+
+    setupRoutes(
+      app,
+      taskController,
+      noteController,
+      healthController,
+      userController,
+      authController
+    );
 
     const PORT = process.env.PORT || 8080;
     app.listen(PORT, () => {
@@ -70,7 +92,11 @@ async function start() {
   } catch (err) {
     console.error('failed to start:', err);
     process.exit(1);
+
+
   }
 }
+
+
 
 start();

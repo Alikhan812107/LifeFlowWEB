@@ -22,6 +22,17 @@ class UserRepository {
       });
     }
   }
+
+  //  для jwt, ваши коды не трогал 
+
+  async findByEmail(email) {
+    return await this.collection.findOne({ email });
+  }
+
+  async create(userData) {
+    const result = await this.collection.insertOne(userData);
+    return { _id: result.insertedId, ...userData };
+  }
 }
 
 module.exports = UserRepository;
