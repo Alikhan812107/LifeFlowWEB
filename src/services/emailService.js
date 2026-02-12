@@ -2,6 +2,13 @@ const nodemailer = require("nodemailer");
 
 class EmailService {
   constructor() {
+    console.log('Initializing EmailService...');
+    console.log('SMTP_HOST:', process.env.SMTP_HOST);
+    console.log('SMTP_PORT:', process.env.SMTP_PORT);
+    console.log('SMTP_USER:', process.env.SMTP_USER ? 'Set' : 'Not set');
+    console.log('SMTP_PASS:', process.env.SMTP_PASS ? 'Set' : 'Not set');
+    console.log('SENDER_EMAIL:', process.env.SENDER_EMAIL);
+    
     this.transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST,
       port: 587,
@@ -16,17 +23,23 @@ class EmailService {
       email: process.env.SENDER_EMAIL || "noreply@danmurdan.shop",
       name: process.env.SENDER_NAME || "LifeFlow",
     };
+    
+    console.log('EmailService initialized successfully');
   }
 
   async sendMail(options) {
     try {
-      await this.transporter.sendMail({
+      console.log('Attempting to send email to:', options.to);
+      const info = await this.transporter.sendMail({
         from: `"${this.sender.name}" <${this.sender.email}>`,
         ...options,
       });
-      console.log("Email sent");
+      console.log('Email sent successfully:', info.messageId);
+      return info;
     } catch (err) {
-      console.error("Email send error:", err.message);
+      console.error('Email send error:', err.message);
+      console.error('Full error:', err);
+      throw err;
     }
   }
 

@@ -33,8 +33,16 @@ class AuthController {
         role: "user"
       });
 
+      console.log('User created, sending welcome email to:', email);
       if (this.emailService) {
-        await this.emailService.sendWelcomeEmail(email, username);
+        try {
+          await this.emailService.sendWelcomeEmail(email, username);
+          console.log('Welcome email sent successfully');
+        } catch (emailErr) {
+          console.error('Failed to send welcome email:', emailErr);
+        }
+      } else {
+        console.log('Email service not available');
       }
 
       return res.status(201).json({
