@@ -10,22 +10,35 @@ class TaskRepository {
     return task;
   }
 
-  async getAll() {
-    return await this.collection.find({}).toArray();
+  async getAll(userId) {
+    const filter = userId ? { user_id: userId } : {};
+    return await this.collection.find(filter).toArray();
   }
 
-  async getById(id) {
-    return await this.collection.findOne({ _id: new ObjectId(id) });
+  async getById(id, userId) {
+    const filter = { _id: new ObjectId(id) };
+    if (userId) {
+      filter.user_id = userId;
+    }
+    return await this.collection.findOne(filter);
   }
 
-  async update(id, task) {
+  async update(id, task, userId) {
     task._id = new ObjectId(id);
-    await this.collection.replaceOne({ _id: new ObjectId(id) }, task);
+    const filter = { _id: new ObjectId(id) };
+    if (userId) {
+      filter.user_id = userId;
+    }
+    await this.collection.replaceOne(filter, task);
     return task;
   }
 
-  async delete(id) {
-    const result = await this.collection.deleteOne({ _id: new ObjectId(id) });
+  async delete(id, userId) {
+    const filter = { _id: new ObjectId(id) };
+    if (userId) {
+      filter.user_id = userId;
+    }
+    const result = await this.collection.deleteOne(filter);
     if (result.deletedCount === 0) {
       throw new Error('not found');
     }

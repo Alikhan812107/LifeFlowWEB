@@ -8,7 +8,7 @@ class TaskController {
 
   create = async (req, res) => {
     try {
-      const task = new Task(req.body);
+      const task = new Task({...req.body, user_id: req.user.id});
       const result = await this.taskService.create(task);
       res.json(result);
     } catch (err) {
@@ -18,7 +18,7 @@ class TaskController {
 
   getAll = async (req, res) => {
     try {
-      const tasks = await this.taskService.getAll();
+      const tasks = await this.taskService.getAll(req.user.id);
       res.json(tasks);
     } catch (err) {
       res.status(500).send(err.message);
@@ -27,7 +27,7 @@ class TaskController {
 
   getById = async (req, res) => {
     try {
-      const task = await this.taskService.getById(req.query.id);
+      const task = await this.taskService.getById(req.query.id, req.user.id);
       if (!task) {
         return res.status(404).send('not found');
       }
@@ -39,8 +39,8 @@ class TaskController {
 
   update = async (req, res) => {
     try {
-      const task = new Task(req.body);
-      const result = await this.taskService.update(req.query.id, task);
+      const task = new Task({...req.body, user_id: req.user.id});
+      const result = await this.taskService.update(req.query.id, task, req.user.id);
       res.json(result);
     } catch (err) {
       res.status(500).send(err.message);
@@ -49,7 +49,8 @@ class TaskController {
 
   delete = async (req, res) => {
     try {
-      await this.taskService.delete(req.query.id);
+      const userId = req.user.role === 'admin' ? null : req.user.id;
+      await this.taskService.delete(req.query.id, userId);
       res.status(204).send();
     } catch (err) {
       res.status(500).send(err.message);
@@ -58,7 +59,7 @@ class TaskController {
 
   viewHTML = async (req, res) => {
     try {
-      const tasks = await this.taskService.getAll();
+      const tasks = await this.taskService.getAll(req.user.id);
       const folders = {};
       
       tasks.forEach(task => {
@@ -82,7 +83,7 @@ class TaskController {
         body: req.body.body,
         folder: req.body.folder || 'General',
         done: false,
-        user_id: 'user1'
+        user_id: req.user.id
       });
       await this.taskService.create(task);
       res.redirect('/');
@@ -98,7 +99,7 @@ class TaskController {
         body: req.body.body,
         folder: req.body.folder || 'General',
         done: req.body.done === 'on',
-        user_id: 'user1'
+        user_id: req.user.id
       });
       await this.taskService.update(req.body.id, task);
       res.redirect('/');
@@ -109,12 +110,12 @@ class TaskController {
 
   toggleTask = async (req, res) => {
     try {
-      const task = await this.taskService.getById(req.query.id);
+      const task = await this.taskService.getById(req.query.id, req.user.id);
       if (!task) {
         return res.status(404).send('not found');
       }
       task.done = !task.done;
-      await this.taskService.update(req.query.id, task);
+      await this.taskService.update(req.query.id, task, req.user.id);
       res.redirect('/');
     } catch (err) {
       res.status(500).send(err.message);
@@ -123,7 +124,8 @@ class TaskController {
 
   deleteFromHTML = async (req, res) => {
     try {
-      await this.taskService.delete(req.query.id);
+      const userId = req.user.role === 'admin' ? null : req.user.id;
+      await this.taskService.delete(req.query.id, userId);
       res.redirect('/');
     } catch (err) {
       res.status(500).send(err.message);

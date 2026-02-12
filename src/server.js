@@ -1,5 +1,6 @@
 require('dotenv').config();
 const express = require('express');
+const cookieParser = require('cookie-parser');
 const path = require('path');
 const { connectDB, getDB } = require('./config/database');
 
@@ -23,11 +24,15 @@ const TaskController = require('./controllers/taskController');
 const NoteController = require('./controllers/noteController');
 const HealthController = require('./controllers/healthController');
 const UserController = require('./controllers/userController');
+const AdminController = require('./controllers/adminController');
+const EmailService = require('./services/emailService');
 
 const setupRoutes = require('./routes');
+const { errorHandler, AppError } = require('./middleware/errorHandler');
 
 const app = express();
 
+app.use(cookieParser());
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, '../templates'));
 
@@ -71,10 +76,10 @@ async function start() {
       userService
     );
 
-    // ВОТ ТУТ ПРАВИЛЬНО СОЗДАЁМ authController
-    const authController = new AuthController(userService);
+    const emailService = new EmailService();
+    const authController = new AuthController(userService, emailService);
 
-    
+    const adminController = new AdminController(userService, taskService, noteService);
 
     setupRoutes(
       app,
@@ -82,8 +87,19 @@ async function start() {
       noteController,
       healthController,
       userController,
-      authController
+      authController,
+      adminController
     );
+
+    app.use((req, res) => {
+      res.status(404).json({ 
+        status: 'error',
+        statusCode: 404,
+        message: 'Route not found' 
+      });
+    });
+
+    app.use(errorHandler);
 
     const PORT = process.env.PORT || 8080;
     app.listen(PORT, () => {

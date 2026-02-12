@@ -23,7 +23,7 @@
                         👤
                     <% } %>
                 </div>
-                <div class="profile-name"><%= user.name %></div>
+                <div class="profile-name"><%= user.username %></div>
                 <div class="profile-email"><%= user.email %></div>
                 <form action="/profile/avatar" method="POST" enctype="multipart/form-data" class="avatar-upload">
                     <input type="file" id="avatar" name="avatar" accept="image/*" onchange="this.form.submit()">
@@ -89,8 +89,21 @@
                 </div>
                 <a href="/" class="btn btn-primary">Go to Tasks</a>
                 <a href="/notes" class="btn btn-primary">Go to Notes</a>
+                <button onclick="logout()" class="btn btn-primary" style="background: #dc3545;">Logout</button>
             </div>
         </div>
     </div>
+    
+    <script>
+        async function logout() {
+            try {
+                await fetch('/api/auth/logout', { method: 'POST' });
+                window.location.href = '/login.html';
+            } catch (err) {
+                console.error('Logout error:', err);
+                window.location.href = '/login.html';
+            }
+        }
+    </script>
 </body>
 </html>

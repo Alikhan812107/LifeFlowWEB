@@ -7,8 +7,8 @@ class NutritionService {
     return await this.repo.create(nutrition);
   }
 
-  async getAll() {
-    return await this.repo.getAll();
+  async getAll(userId) {
+    return await this.repo.getAll(userId);
   }
 }
 

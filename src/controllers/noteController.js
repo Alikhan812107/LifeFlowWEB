@@ -7,7 +7,7 @@ class NoteController {
 
   create = async (req, res) => {
     try {
-      const note = new Note(req.body);
+      const note = new Note({...req.body, user_id: req.user.id});
       const result = await this.noteService.create(note);
       res.json(result);
     } catch (err) {
@@ -17,7 +17,7 @@ class NoteController {
 
   getAll = async (req, res) => {
     try {
-      const notes = await this.noteService.getAll();
+      const notes = await this.noteService.getAll(req.user.id);
       res.json(notes);
     } catch (err) {
       res.status(500).send(err.message);
@@ -26,7 +26,7 @@ class NoteController {
 
   viewHTML = async (req, res) => {
     try {
-      const notes = await this.noteService.getAll();
+      const notes = await this.noteService.getAll(req.user.id);
       res.render('notes', notes);
     } catch (err) {
       res.status(500).send(err.message);
@@ -38,7 +38,7 @@ class NoteController {
       const note = new Note({
         title: req.body.title,
         description: req.body.description,
-        user_id: 'user1'
+        user_id: req.user.id
       });
       await this.noteService.create(note);
       res.redirect('/notes');
@@ -52,9 +52,9 @@ class NoteController {
       const note = new Note({
         title: req.body.title,
         description: req.body.description,
-        user_id: 'user1'
+        user_id: req.user.id
       });
-      await this.noteService.update(req.body.id, note);
+      await this.noteService.update(req.body.id, note, req.user.id);
       res.redirect('/notes');
     } catch (err) {
       res.status(500).send(err.message);
@@ -63,7 +63,7 @@ class NoteController {
 
   deleteFromHTML = async (req, res) => {
     try {
-      await this.noteService.delete(req.query.id);
+      await this.noteService.delete(req.query.id, req.user.id);
       res.redirect('/notes');
     } catch (err) {
       res.status(500).send(err.message);

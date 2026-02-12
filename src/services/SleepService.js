@@ -7,8 +7,8 @@ class SleepService {
     return await this.repo.create(sleep);
   }
 
-  async getAll() {
-    return await this.repo.getAll();
+  async getAll(userId) {
+    return await this.repo.getAll(userId);
   }
 }
 

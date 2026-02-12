@@ -1,5 +1,8 @@
 const express = require('express');
 const multer = require('multer');
+const authMiddleware = require('../middleware/authMiddleware');
+const validate = require('../middleware/validationMiddleware');
+const checkRole = require('../middleware/rbacMiddleware');
 
 const upload = multer({ 
   storage: multer.memoryStorage(),
@@ -12,48 +15,45 @@ function setupRoutes(
   noteController,
   healthController,
   userController,
-  authController
+  authController,
+  adminController
 ) {
+  app.post('/api/auth/register', validate('register'), authController.register);
+  app.post('/api/auth/login', validate('login'), authController.login);
+  app.post('/api/auth/logout', authController.logout);
 
-  app.get('/tasks', taskController.getAll);
-  app.post('/tasks', taskController.create);
-  app.get('/tasks/item', taskController.getById);
-  app.put('/tasks/item', taskController.update);
-  app.delete('/tasks/item', taskController.delete);
+  app.get('/api/admin/users', authMiddleware, checkRole('admin'), adminController.getAllUsers);
+  app.put('/api/admin/users/role', authMiddleware, checkRole('admin'), adminController.updateUserRole);
+  app.delete('/api/admin/tasks', authMiddleware, checkRole('admin'), adminController.deleteAnyTask);
+  app.delete('/api/admin/notes', authMiddleware, checkRole('admin'), adminController.deleteAnyNote);
 
-  app.get('/', taskController.viewHTML);
-  app.post('/development/html', taskController.createFromHTML);
-  app.get('/development/toggle', taskController.toggleTask);
-  app.get('/development/delete', taskController.deleteFromHTML);
-  app.post('/development/update', taskController.updateFromHTML);
+  app.get('/tasks', authMiddleware, taskController.getAll);
+  app.post('/tasks', authMiddleware, validate('task'), taskController.create);
+  app.get('/tasks/item', authMiddleware, taskController.getById);
+  app.put('/tasks/item', authMiddleware, validate('task'), taskController.update);
+  app.delete('/tasks/item', authMiddleware, taskController.delete);
 
-  app.get('/notes', noteController.viewHTML);
-  app.post('/notes/html', noteController.createFromHTML);
-  app.post('/notes/update', noteController.updateFromHTML);
-  app.get('/notes/delete', noteController.deleteFromHTML);
+  app.get('/', authMiddleware, taskController.viewHTML);
+  app.post('/development/html', authMiddleware, validate('task'), taskController.createFromHTML);
+  app.get('/development/toggle', authMiddleware, taskController.toggleTask);
+  app.get('/development/delete', authMiddleware, taskController.deleteFromHTML);
+  app.post('/development/update', authMiddleware, validate('task'), taskController.updateFromHTML);
 
-  app.get('/health', healthController.viewHTML);
-  app.get('/api/health/sleep', healthController.getSleepData);
-  app.get('/api/health/nutrition', healthController.getNutritionData);
-  app.get('/api/health/activity', healthController.getActivityData);
-  app.post('/health/sleep', healthController.createSleep);
-  app.post('/health/nutrition', healthController.createNutrition);
-  app.post('/health/activity', healthController.createActivity);
+  app.get('/notes', authMiddleware, noteController.viewHTML);
+  app.post('/notes/html', authMiddleware, validate('note'), noteController.createFromHTML);
+  app.post('/notes/update', authMiddleware, validate('note'), noteController.updateFromHTML);
+  app.get('/notes/delete', authMiddleware, noteController.deleteFromHTML);
 
-  app.get('/profile', userController.viewProfile);
-  app.post('/profile/avatar', upload.single('avatar'), userController.uploadAvatar);
+  app.get('/health', authMiddleware, healthController.viewHTML);
+  app.get('/api/health/sleep', authMiddleware, healthController.getSleepData);
+  app.get('/api/health/nutrition', authMiddleware, healthController.getNutritionData);
+  app.get('/api/health/activity', authMiddleware, healthController.getActivityData);
+  app.post('/health/sleep', authMiddleware, validate('sleep'), healthController.createSleep);
+  app.post('/health/nutrition', authMiddleware, validate('nutrition'), healthController.createNutrition);
+  app.post('/health/activity', authMiddleware, validate('activity'), healthController.createActivity);
 
-
-    // AUTH (JWT)
-    app.post('/api/auth/register', authController.register);
-    app.post('/api/auth/login', authController.login);
-
-    
-
-
-
-
-  
+  app.get('/profile', authMiddleware, userController.viewProfile);
+  app.post('/profile/avatar', authMiddleware, upload.single('avatar'), userController.uploadAvatar);
 }
 
 module.exports = setupRoutes;

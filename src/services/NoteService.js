@@ -7,20 +7,20 @@ class NoteService {
     return await this.repo.create(note);
   }
 
-  async getAll() {
-    return await this.repo.getAll();
+  async getAll(userId) {
+    return await this.repo.getAll(userId);
   }
 
-  async getById(id) {
-    return await this.repo.getById(id);
+  async getById(id, userId) {
+    return await this.repo.getById(id, userId);
   }
 
-  async update(id, note) {
-    return await this.repo.update(id, note);
+  async update(id, note, userId) {
+    return await this.repo.update(id, note, userId);
   }
 
-  async delete(id) {
-    return await this.repo.delete(id);
+  async delete(id, userId) {
+    return await this.repo.delete(id, userId);
   }
 }
 

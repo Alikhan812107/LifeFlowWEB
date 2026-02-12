@@ -7,8 +7,8 @@ class ActivityService {
     return await this.repo.create(activity);
   }
 
-  async getAll() {
-    return await this.repo.getAll();
+  async getAll(userId) {
+    return await this.repo.getAll(userId);
   }
 }
 

@@ -8,6 +8,7 @@ class AuthController {
     // bind чтобы this работал в routes
     this.register = this.register.bind(this);
     this.login = this.login.bind(this);
+    this.logout = this.logout.bind(this);
   }
 
   async register(req, res) {
@@ -61,19 +62,29 @@ class AuthController {
         return res.status(401).json({ message: "Invalid credentials" });
       }
 
+      const jwtSecret = process.env.JWT_SECRET || 'fallback-secret-key-for-development';
+      
       const token = jwt.sign(
-        { id: user._id, role: user.role || "user" },
-        process.env.JWT_SECRET,
+        { id: user._id.toString(), role: user.role || "user" },
+        jwtSecret,
         { expiresIn: "1d" }
       );
 
-      
+      res.cookie('token', token, {
+        httpOnly: true,
+        maxAge: 24 * 60 * 60 * 1000
+      });
 
       return res.json({ token });
     } catch (err) {
       console.error(err);
       return res.status(500).json({ message: "Server error" });
     }
+  }
+
+  async logout(req, res) {
+    res.clearCookie('token');
+    return res.json({ message: "Logged out successfully" });
   }
 }
 

@@ -7,19 +7,20 @@ class UserController {
 
   viewProfile = async (req, res) => {
     try {
-      const tasks = await this.taskService.getAll();
-      const notes = await this.noteService.getAll();
+      const userId = req.user.id;
+      const tasks = await this.taskService.getAll(userId);
+      const notes = await this.noteService.getAll(userId);
 
       const completedTasks = tasks.filter(task => task.done).length;
 
-      const user = await this.userService.getById('user1');
+      const user = await this.userService.getById(userId);
       if (user) {
         user.tasks_num = tasks.length;
         user.notes_num = notes.length;
       }
 
       res.render('profile', {
-        user: user || { name: 'John Student', email: 'john@student.com' },
+        user: user || { username: 'User', email: 'user@example.com' },
         completedTasks,
         activeTasks: tasks.length - completedTasks
       });
@@ -34,8 +35,9 @@ class UserController {
         return res.status(400).send('no file uploaded');
       }
 
+      const userId = req.user.id;
       const base64Image = req.file.buffer.toString('base64');
-      await this.userService.updateAvatar('user1', base64Image);
+      await this.userService.updateAvatar(userId, base64Image);
       res.redirect('/profile');
     } catch (err) {
       res.status(500).send(err.message);

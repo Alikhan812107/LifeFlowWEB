@@ -7,20 +7,20 @@ class TaskService {
     return await this.repo.create(task);
   }
 
-  async getAll() {
-    return await this.repo.getAll();
+  async getAll(userId) {
+    return await this.repo.getAll(userId);
   }
 
-  async getById(id) {
-    return await this.repo.getById(id);
+  async getById(id, userId) {
+    return await this.repo.getById(id, userId);
   }
 
-  async update(id, task) {
-    return await this.repo.update(id, task);
+  async update(id, task, userId) {
+    return await this.repo.update(id, task, userId);
   }
 
-  async delete(id) {
-    return await this.repo.delete(id);
+  async delete(id, userId) {
+    return await this.repo.delete(id, userId);
   }
 }
 

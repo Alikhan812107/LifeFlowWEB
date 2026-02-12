@@ -20,7 +20,7 @@ class HealthController {
 
   getSleepData = async (req, res) => {
     try {
-      const sleeps = await this.sleepService.getAll();
+      const sleeps = await this.sleepService.getAll(req.user.id);
       res.json(sleeps || []);
     } catch (err) {
       res.status(500).json({ error: err.message });
@@ -29,7 +29,7 @@ class HealthController {
 
   getNutritionData = async (req, res) => {
     try {
-      const nutritions = await this.nutritionService.getAll();
+      const nutritions = await this.nutritionService.getAll(req.user.id);
       res.json(nutritions || []);
     } catch (err) {
       res.status(500).json({ error: err.message });
@@ -38,7 +38,7 @@ class HealthController {
 
   getActivityData = async (req, res) => {
     try {
-      const activities = await this.activityService.getAll();
+      const activities = await this.activityService.getAll(req.user.id);
       res.json(activities || []);
     } catch (err) {
       res.status(500).json({ error: err.message });
@@ -50,7 +50,7 @@ class HealthController {
       const sleep = new Sleep({
         woke_up: new Date(req.body.woke_up),
         slept: new Date(req.body.slept),
-        user_id: 'user1',
+        user_id: req.user.id,
         timestamp: new Date()
       });
       await this.sleepService.create(sleep);
@@ -66,7 +66,7 @@ class HealthController {
         calories: parseInt(req.body.calories),
         water: parseFloat(req.body.water),
         healthy: req.body.healthy === 'yes',
-        user_id: 'user1',
+        user_id: req.user.id,
         timestamp: new Date()
       });
       await this.nutritionService.create(nutrition);
@@ -80,7 +80,7 @@ class HealthController {
     try {
       const activity = new Activity({
         description: req.body.description,
-        user_id: 'user1',
+        user_id: req.user.id,
         timestamp: new Date()
       });
       await this.activityService.create(activity);

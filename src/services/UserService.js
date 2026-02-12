@@ -19,6 +19,14 @@ class UserService {
   async createUser(data) {
     return await this.repo.create(data);
   }
+
+  async getAllUsers() {
+    return await this.repo.getAllUsers();
+  }
+
+  async updateRole(userId, role) {
+    return await this.repo.updateRole(userId, role);
+  }
 }
 
 module.exports = UserService;
