@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>LifeFlow Profile</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="nav">
+            <a href="/">Development</a>
+            <a href="/notes">Notes</a>
+            <a href="/health">Health</a>
+            <a href="/profile" class="active">Profile</a>
+        </div>
+        
+        <div class="profile-section">
+            <div class="profile-card">
+                <div class="profile-avatar">
+                    <% if (user.avatar) { %>
+                        <img src="data:image/jpeg;base64,<%= user.avatar %>" alt="Avatar">
+                    <% } else { %>
+                        👤
+                    <% } %>
+                </div>
+                <div class="profile-name"><%= user.username %></div>
+                <div class="profile-email"><%= user.email %></div>
+                <form action="/profile/avatar" method="POST" enctype="multipart/form-data" class="avatar-upload">
+                    <input type="file" id="avatar" name="avatar" accept="image/*" onchange="this.form.submit()">
+                    <label for="avatar">Change Avatar</label>
+                </form>
+            </div>
+            
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">📋</div>
+                    <div class="stat-number"><%= user.tasks_num %></div>
+                    <div class="stat-label">Total Tasks</div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon">✅</div>
+                    <div class="stat-number"><%= completedTasks %></div>
+                    <div class="stat-label">Completed</div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon">⏳</div>
+                    <div class="stat-number"><%= activeTasks %></div>
+                    <div class="stat-label">Active Tasks</div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon">📝</div>
+                    <div class="stat-number"><%= user.notes_num %></div>
+                    <div class="stat-label">Notes</div>
+                </div>
+            </div>
+            
+            <div class="info-section">
+                <div class="info-title">
+                    <span>📊</span>
+                    Account Statistics
+                </div>
+                <div class="info-item">
+                    <span class="info-label">User ID</span>
+                    <span class="info-value"><%= user._id %></span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Total Items</span>
+                    <span class="info-value"><%= user.tasks_num + user.notes_num %></span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Completion Rate</span>
+                    <span class="info-value">
+                        <% if (user.tasks_num > 0) { %>
+                            <%= Math.floor((completedTasks * 100) / user.tasks_num) %>%
+                        <% } else { %>
+                            0%
+                        <% } %>
+                    </span>
+                </div>
+            </div>
+            
+            <div class="info-section">
+                <div class="info-title">
+                    <span>⚙️</span>
+                    Quick Actions
+                </div>
+                <a href="/" class="btn btn-primary">Go to Tasks</a>
+                <a href="/notes" class="btn btn-primary">Go to Notes</a>
+                <button onclick="logout()" class="btn btn-primary" style="background: #dc3545;">Logout</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        async function logout() {
+            try {
+                await fetch('/api/auth/logout', { method: 'POST' });
+                window.location.href = '/login.html';
+            } catch (err) {
+                console.error('Logout error:', err);
+                window.location.href = '/login.html';
+            }
+        }
+    </script>
+</body>
+</html>
