@@ -14,10 +14,11 @@ Full-stack web application for managing tasks, notes, and health tracking with a
 ### Advanced Features
 - 🔐 JWT Authentication with httpOnly cookies
 - 👥 Role-Based Access Control (RBAC)
-- 📧 Email notifications via Mailtrap
+- 📧 Email notifications via AWS SES
 - ✔️ Input validation with Joi
 - 🛡️ Global error handling
 - 🔒 Secure password hashing with bcrypt
+- 🎯 RESTful API with proper HTTP methods
 
 ## Quick Start
 
@@ -31,9 +32,13 @@ Create `.env` file:
 ```env
 MONGO_URI=mongodb+srv://your-connection-string
 JWT_SECRET=your-secret-key-here
-MAILTRAP_TOKEN=your-mailtrap-token
-MAILTRAP_SENDER_EMAIL=hello@demomailtrap.com
-MAILTRAP_SENDER_NAME=LifeFlow
+SMTP_HOST=email-smtp.eu-north-1.amazonaws.com
+SMTP_PORT=587
+SMTP_USER=your-aws-ses-smtp-user
+SMTP_PASS=your-aws-ses-smtp-password
+SENDER_EMAIL=noreply@yourdomain.com
+SENDER_NAME=LifeFlow
+PORT=8080
 ```
 
 ### 3. Start Server
@@ -48,7 +53,7 @@ Open http://localhost:8080
 
 ### 5. Register First User
 1. Go to http://localhost:8080/register.html
-2. Create account (will receive welcome email in Mailtrap)
+2. Create account (will receive welcome email)
 3. Login at http://localhost:8080/login.html
 
 ### 6. Make User Admin (Optional)
@@ -69,35 +74,41 @@ db.users.updateOne(
 | **moderator** | Same as user (can be extended) |
 | **admin** | Delete any tasks/notes, manage user roles |
 
-## API Endpoints
+## REST API Endpoints
 
-### Authentication
+### Authentication (Public)
 ```
 POST /api/auth/register    - Register new user
 POST /api/auth/login       - Login (returns JWT token)
 POST /api/auth/logout      - Logout (clears cookie)
 ```
 
-### Tasks
+### User Management (Private)
 ```
-GET  /                          - Task management page
-POST /development/html          - Create task
-POST /development/update        - Update task
-GET  /development/toggle?id=... - Toggle task status
-GET  /development/delete?id=... - Delete task
+GET  /api/users/profile    - Get logged-in user profile
+PUT  /api/users/profile    - Update user profile (username, email)
 ```
 
-### Notes
+### Tasks (Private)
 ```
-GET  /notes              - Notes page
-POST /notes/html         - Create note
-POST /notes/update       - Update note
-GET  /notes/delete?id=... - Delete note
+POST   /api/tasks          - Create new task
+GET    /api/tasks          - Get all user tasks
+GET    /api/tasks/:id      - Get specific task by ID
+PUT    /api/tasks/:id      - Update specific task
+DELETE /api/tasks/:id      - Delete specific task
 ```
 
-### Health
+### Notes (Private)
 ```
-GET  /health                    - Health tracking page
+POST   /api/notes          - Create new note
+GET    /api/notes          - Get all user notes
+GET    /api/notes/:id      - Get specific note by ID
+PUT    /api/notes/:id      - Update specific note
+DELETE /api/notes/:id      - Delete specific note
+```
+
+### Health Tracking (Private)
+```
 GET  /api/health/sleep          - Get sleep data
 GET  /api/health/nutrition      - Get nutrition data
 GET  /api/health/activity       - Get activity data
@@ -106,19 +117,24 @@ POST /health/nutrition          - Add nutrition record
 POST /health/activity           - Add activity record
 ```
 
-### Profile
-```
-GET  /profile           - User profile page
-POST /profile/avatar    - Upload avatar (max 10MB)
-```
-
-### Admin (Requires admin role)
+### Admin (Admin Role Required)
 ```
 GET    /api/admin/users         - List all users
 PUT    /api/admin/users/role    - Update user role
 DELETE /api/admin/tasks?id=...  - Delete any task
 DELETE /api/admin/notes?id=...  - Delete any note
 ```
+
+### Web Pages (Private)
+```
+GET  /                     - Task management page
+GET  /notes                - Notes page
+GET  /health               - Health tracking page
+GET  /profile              - User profile page
+POST /profile/avatar       - Upload avatar (max 10MB)
+```
+
+See [API_ENDPOINTS.md](API_ENDPOINTS.md) for detailed API documentation with examples.
 
 ## Architecture
 
@@ -152,10 +168,21 @@ Request → Middleware → Controller → Service → Repository → MongoDB
 │   │   ├── healthController.js      # Health tracking
 │   │   └── userController.js        # User profile
 │   ├── services/
-│   │   ├── emailService.js          # Email notifications
-│   │   └── ...Service.js            # Business logic
+│   │   ├── emailService.js          # Email notifications (AWS SES)
+│   │   ├── TaskService.js           # Task business logic
+│   │   ├── NoteService.js           # Note business logic
+│   │   ├── UserService.js           # User business logic
+│   │   └── ...Service.js            # Other services
 │   ├── repositories/                # Database operations
+│   │   ├── TaskRepository.js
+│   │   ├── NoteRepository.js
+│   │   ├── UserRepository.js
+│   │   └── ...Repository.js
 │   ├── models/                      # Data structures
+│   │   ├── Task.js
+│   │   ├── Note.js
+│   │   ├── User.js
+│   │   └── ...js
 │   ├── middleware/
 │   │   ├── authMiddleware.js        # JWT verification
 │   │   ├── rbacMiddleware.js        # Role checking
@@ -169,10 +196,14 @@ Request → Middleware → Controller → Service → Repository → MongoDB
 │   ├── development.ejs              # Tasks page
 │   ├── notes.ejs                    # Notes page
 │   ├── health.html                  # Health page
-│   └── profile.ejs                  # Profile page
+│   ├── profile.ejs                  # Profile page
+│   └── style.css
 ├── .env                             # Environment variables
+├── .gitignore
 ├── package.json
-└── README.md
+├── README.md
+├── API_ENDPOINTS.md                 # Detailed API documentation
+└── RBAC_GUIDE.md                    # RBAC usage guide
 ```
 
 ## MongoDB Collections
@@ -188,107 +219,112 @@ Request → Middleware → Controller → Service → Repository → MongoDB
 
 ## Security Features
 
-- ✅ Password hashing with bcryptjs
+- ✅ Password hashing with bcryptjs (10 rounds)
 - ✅ JWT tokens stored in httpOnly cookies
-- ✅ Input validation with Joi
-- ✅ Role-based access control
+- ✅ Input validation with Joi schemas
+- ✅ Role-based access control (RBAC)
 - ✅ User data isolation (users only see their own data)
 - ✅ Admin-only endpoints protected
-- ✅ Proper error handling with status codes
+- ✅ Proper error handling with status codes (400, 401, 403, 404, 500)
+- ✅ SQL injection prevention (MongoDB parameterized queries)
 
 ## Email Notifications
 
-Emails are sent via Mailtrap for:
-- Welcome email on registration
-- Password reset (if implemented)
-- Task notifications (if implemented)
+Emails are sent via AWS SES (Simple Email Service) for:
+- ✅ Welcome email on registration with onboarding instructions
+- 📧 Password reset (ready to implement)
+- 📧 Task notifications (ready to implement)
 
-Check emails at: https://mailtrap.io/inboxes
-
-## Testing RBAC
-
-### 1. Create Regular User
-```bash
-POST /api/auth/register
-{
-  "username": "testuser",
-  "email": "test@example.com",
-  "password": "123456"
-}
-```
-
-### 2. Create Admin User
-```bash
-# Register user
-POST /api/auth/register
-{
-  "username": "admin",
-  "email": "admin@example.com",
-  "password": "123456"
-}
-
-# Then in MongoDB:
-db.users.updateOne(
-  { email: "admin@example.com" },
-  { $set: { role: "admin" } }
-)
-```
-
-### 3. Test Admin Endpoints
-```bash
-# Login as admin
-POST /api/auth/login
-{
-  "email": "admin@example.com",
-  "password": "123456"
-}
-
-# Use token to access admin endpoints
-GET /api/admin/users
-Headers: Authorization: Bearer <token>
-```
+**Welcome Email includes:**
+- Personalized greeting
+- Platform introduction
+- Next steps guide
+- Professional HTML formatting
 
 ## Validation Rules
 
 ### Registration
-- username: 3-30 characters
-- email: valid email format
-- password: minimum 6 characters
+- username: 3-30 characters (required)
+- email: valid email format (required)
+- password: minimum 6 characters (required)
 
 ### Tasks
 - title: 1-200 characters (required)
-- body: max 1000 characters
-- folder: max 100 characters
+- body: max 1000 characters (optional)
+- folder: max 100 characters (optional)
+- done: boolean or string ('on', 'off', 'true', 'false')
 
 ### Notes
 - title: 1-200 characters (required)
-- content: max 5000 characters
+- content: max 5000 characters (optional)
 
 ### Health
-- sleep: woke_up and slept dates required
-- nutrition: calories (0-10000), water (0-20L)
-- activity: description 1-500 characters
+- sleep: woke_up and slept dates (required)
+- nutrition: calories (0-10000), water (0-20L), healthy (yes/no)
+- activity: description 1-500 characters (required)
 
 ## Error Codes
 
 | Code | Description |
 |------|-------------|
-| 400 | Bad Request (validation error) |
-| 401 | Unauthorized (invalid/missing token) |
-| 403 | Forbidden (insufficient permissions) |
-| 404 | Not Found (resource doesn't exist) |
+| 200 | OK - Request successful |
+| 201 | Created - Resource created successfully |
+| 204 | No Content - Resource deleted successfully |
+| 400 | Bad Request - Validation error |
+| 401 | Unauthorized - Invalid/missing token |
+| 403 | Forbidden - Insufficient permissions |
+| 404 | Not Found - Resource doesn't exist |
 | 500 | Internal Server Error |
+
+## Testing the API
+
+### Using cURL
+
+**Register:**
+```bash
+curl -X POST http://localhost:8080/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"username":"john","email":"john@example.com","password":"123456"}'
+```
+
+**Login:**
+```bash
+curl -X POST http://localhost:8080/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"john@example.com","password":"123456"}'
+```
+
+**Get Profile:**
+```bash
+curl -X GET http://localhost:8080/api/users/profile \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE"
+```
+
+**Create Task:**
+```bash
+curl -X POST http://localhost:8080/api/tasks \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE" \
+  -H "Content-Type: application/json" \
+  -d '{"title":"My Task","body":"Description","folder":"Work","done":false}'
+```
+
+### Using Postman
+
+1. Import the collection from `API_ENDPOINTS.md`
+2. Set environment variable `token` after login
+3. Use `{{token}}` in Authorization header
 
 ## Tech Stack
 
 - **Backend**: Node.js, Express.js
 - **Database**: MongoDB (official driver)
-- **Authentication**: JWT, bcryptjs
+- **Authentication**: JWT (jsonwebtoken), bcryptjs
 - **Validation**: Joi
-- **Email**: Mailtrap (via mailtrap package)
+- **Email**: Nodemailer with AWS SES
 - **Templates**: EJS, HTML
 - **Charts**: Chart.js
-- **Styling**: Pure CSS
+- **Styling**: Pure CSS (no frameworks)
+- **File Upload**: Multer (for avatars)
 
 ## Development
 
@@ -296,7 +332,7 @@ Headers: Authorization: Bearer <token>
 # Install dependencies
 npm install
 
-# Start development server
+# Start development server (with auto-reload)
 npm run dev
 
 # Start production server
@@ -307,13 +343,88 @@ npm start
 
 | Variable | Description | Example |
 |----------|-------------|---------|
-| MONGO_URI | MongoDB connection string | mongodb+srv://... |
-| JWT_SECRET | Secret key for JWT | your-secret-key |
-| MAILTRAP_TOKEN | Mailtrap API token | abc123... |
-| MAILTRAP_SENDER_EMAIL | Sender email | hello@demomailtrap.com |
-| MAILTRAP_SENDER_NAME | Sender name | LifeFlow |
+| MONGO_URI | MongoDB connection string | mongodb+srv://user:pass@cluster.mongodb.net/ |
+| JWT_SECRET | Secret key for JWT signing | your-secret-key-123 |
+| SMTP_HOST | SMTP server hostname | email-smtp.eu-north-1.amazonaws.com |
+| SMTP_PORT | SMTP server port | 587 |
+| SMTP_USER | SMTP username (AWS SES) | AKIAZILYC27T36AIXEZJ |
+| SMTP_PASS | SMTP password (AWS SES) | your-smtp-password |
+| SENDER_EMAIL | Email sender address | noreply@yourdomain.com |
+| SENDER_NAME | Email sender name | LifeFlow |
 | PORT | Server port (optional) | 8080 |
+
+## AWS SES Setup
+
+1. Create AWS account and verify your domain
+2. Create SMTP credentials in AWS SES console
+3. Add credentials to `.env` file
+4. Verify sender email address in AWS SES
+5. Request production access (if needed)
+
+## Database Setup
+
+1. Create MongoDB Atlas account (free tier available)
+2. Create a new cluster
+3. Create database user with read/write permissions
+4. Whitelist your IP address (or use 0.0.0.0/0 for development)
+5. Get connection string and add to `.env`
+
+## Deployment
+
+### Heroku
+```bash
+heroku create your-app-name
+heroku config:set MONGO_URI=your-mongo-uri
+heroku config:set JWT_SECRET=your-secret
+# ... set other env variables
+git push heroku main
+```
+
+### Vercel
+```bash
+vercel
+# Configure environment variables in Vercel dashboard
+```
+
+### Docker
+```dockerfile
+FROM node:18
+WORKDIR /app
+COPY package*.json ./
+RUN npm install
+COPY . .
+EXPOSE 8080
+CMD ["npm", "start"]
+```
+
+## Contributing
+
+1. Fork the repository
+2. Create feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit changes (`git commit -m 'Add amazing feature'`)
+4. Push to branch (`git push origin feature/amazing-feature`)
+5. Open Pull Request
 
 ## License
 
 MIT
+
+## Support
+
+For issues and questions:
+- Check [API_ENDPOINTS.md](API_ENDPOINTS.md) for API documentation
+- Check [RBAC_GUIDE.md](RBAC_GUIDE.md) for RBAC usage
+- Open an issue on GitHub
+
+## Roadmap
+
+- [ ] Password reset functionality
+- [ ] Email verification
+- [ ] Two-factor authentication (2FA)
+- [ ] Task reminders and notifications
+- [ ] Export data to CSV/PDF
+- [ ] Mobile responsive design improvements
+- [ ] Dark mode
+- [ ] Task sharing between users
+- [ ] Calendar view for tasks
+- [ ] Advanced analytics dashboard

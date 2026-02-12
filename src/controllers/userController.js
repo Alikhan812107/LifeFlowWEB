@@ -43,6 +43,29 @@ class UserController {
       res.status(500).send(err.message);
     }
   };
+
+  getProfile = async (req, res) => {
+    try {
+      const user = await this.userService.getById(req.user.id);
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+      const { password, avatar, ...userProfile } = user;
+      res.json(userProfile);
+    } catch (err) {
+      res.status(500).json({ message: err.message });
+    }
+  };
+
+  updateProfile = async (req, res) => {
+    try {
+      const { username, email } = req.body;
+      await this.userService.updateProfile(req.user.id, { username, email });
+      res.json({ message: 'Profile updated successfully' });
+    } catch (err) {
+      res.status(500).json({ message: err.message });
+    }
+  };
 }
 
 module.exports = UserController;

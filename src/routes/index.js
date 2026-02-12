@@ -22,6 +22,21 @@ function setupRoutes(
   app.post('/api/auth/login', validate('login'), authController.login);
   app.post('/api/auth/logout', authController.logout);
 
+  app.get('/api/users/profile', authMiddleware, userController.getProfile);
+  app.put('/api/users/profile', authMiddleware, userController.updateProfile);
+
+  app.post('/api/tasks', authMiddleware, validate('task'), taskController.create);
+  app.get('/api/tasks', authMiddleware, taskController.getAll);
+  app.get('/api/tasks/:id', authMiddleware, taskController.getById);
+  app.put('/api/tasks/:id', authMiddleware, validate('task'), taskController.update);
+  app.delete('/api/tasks/:id', authMiddleware, taskController.delete);
+
+  app.post('/api/notes', authMiddleware, validate('note'), noteController.create);
+  app.get('/api/notes', authMiddleware, noteController.getAll);
+  app.get('/api/notes/:id', authMiddleware, noteController.getById);
+  app.put('/api/notes/:id', authMiddleware, validate('note'), noteController.update);
+  app.delete('/api/notes/:id', authMiddleware, noteController.delete);
+
   app.get('/api/admin/users', authMiddleware, checkRole('admin'), adminController.getAllUsers);
   app.put('/api/admin/users/role', authMiddleware, checkRole('admin'), adminController.updateUserRole);
   app.delete('/api/admin/tasks', authMiddleware, checkRole('admin'), adminController.deleteAnyTask);

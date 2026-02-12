@@ -30,3 +30,7 @@ class UserService {
 }
 
 module.exports = UserService;
+
+  async updateProfile(userId, data) {
+    return await this.repo.updateProfile(userId, data);
+  }

@@ -69,6 +69,40 @@ class NoteController {
       res.status(500).send(err.message);
     }
   };
+
+  getById = async (req, res) => {
+    try {
+      const id = req.params.id || req.query.id;
+      const note = await this.noteService.getById(id, req.user.id);
+      if (!note) {
+        return res.status(404).json({ message: 'Note not found' });
+      }
+      res.json(note);
+    } catch (err) {
+      res.status(500).json({ message: err.message });
+    }
+  };
+
+  update = async (req, res) => {
+    try {
+      const id = req.params.id || req.query.id;
+      const note = new Note({...req.body, user_id: req.user.id});
+      const result = await this.noteService.update(id, note, req.user.id);
+      res.json(result);
+    } catch (err) {
+      res.status(500).json({ message: err.message });
+    }
+  };
+
+  delete = async (req, res) => {
+    try {
+      const id = req.params.id || req.query.id;
+      await this.noteService.delete(id, req.user.id);
+      res.status(204).send();
+    } catch (err) {
+      res.status(500).json({ message: err.message });
+    }
+  };
 }
 
 module.exports = NoteController;

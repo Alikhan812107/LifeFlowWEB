@@ -34,11 +34,40 @@ class EmailService {
     await this.sendMail({
       to: email,
       subject: "Welcome to LifeFlow!",
-      text: `Welcome to LifeFlow, ${username}!`,
+      text: `Welcome to LifeFlow, ${username}!
+
+We are very happy to see you in our community 🎉
+
+LifeFlow helps you manage tasks, organize notes, and track your daily progress in a simple and efficient way.
+
+Here is what you can do next:
+- Create your first task
+- Add a personal note
+- Customize your profile
+- Explore the system and build your own productivity flow
+
+If you did not register in LifeFlow, please ignore this email.
+
+Have a productive day,
+LifeFlow Team`,
       html: `
-        <h1>Welcome to LifeFlow, ${username}!</h1>
-        <p>Thank you for registering.</p>
-      `,
+<div style="font-family: Arial, sans-serif; line-height: 1.6;">
+  <h1>Welcome to LifeFlow, ${username}! 🎉</h1>
+  <p>We are very happy to see you in our community.</p>
+  <p><b>LifeFlow</b> helps you manage tasks, organize notes, and track your daily progress in a simple and efficient way.</p>
+  
+  <h3>🚀 What you can do next:</h3>
+  <ul>
+    <li>Create your first task</li>
+    <li>Add a personal note</li>
+    <li>Customize your profile</li>
+    <li>Explore the system and build your own productivity flow</li>
+  </ul>
+  
+  <p>If you did not register in LifeFlow, please ignore this email.</p>
+  <br/>
+  <p>Have a productive day,<br/><b>LifeFlow Team</b></p>
+</div>`,
     });
   }
 

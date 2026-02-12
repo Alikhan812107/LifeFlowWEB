@@ -27,33 +27,36 @@ class TaskController {
 
   getById = async (req, res) => {
     try {
-      const task = await this.taskService.getById(req.query.id, req.user.id);
+      const id = req.params.id || req.query.id;
+      const task = await this.taskService.getById(id, req.user.id);
       if (!task) {
-        return res.status(404).send('not found');
+        return res.status(404).json({ message: 'Task not found' });
       }
       res.json(task);
     } catch (err) {
-      res.status(500).send(err.message);
+      res.status(500).json({ message: err.message });
     }
   };
 
   update = async (req, res) => {
     try {
+      const id = req.params.id || req.query.id;
       const task = new Task({...req.body, user_id: req.user.id});
-      const result = await this.taskService.update(req.query.id, task, req.user.id);
+      const result = await this.taskService.update(id, task, req.user.id);
       res.json(result);
     } catch (err) {
-      res.status(500).send(err.message);
+      res.status(500).json({ message: err.message });
     }
   };
 
   delete = async (req, res) => {
     try {
+      const id = req.params.id || req.query.id;
       const userId = req.user.role === 'admin' ? null : req.user.id;
-      await this.taskService.delete(req.query.id, userId);
+      await this.taskService.delete(id, userId);
       res.status(204).send();
     } catch (err) {
-      res.status(500).send(err.message);
+      res.status(500).json({ message: err.message });
     }
   };
 

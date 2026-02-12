@@ -35,6 +35,17 @@ class UserRepository {
       { $set: { role: role } }
     );
   }
+
+  async updateProfile(userId, data) {
+    const updateData = {};
+    if (data.username) updateData.username = data.username;
+    if (data.email) updateData.email = data.email;
+    
+    await this.collection.updateOne(
+      { _id: new ObjectId(userId) },
+      { $set: updateData }
+    );
+  }
 }
 
 module.exports = UserRepository;
