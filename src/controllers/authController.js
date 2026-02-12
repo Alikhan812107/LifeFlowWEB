@@ -2,10 +2,10 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
 class AuthController {
-  constructor(userService) {
+  constructor(userService, emailService) {
     this.userService = userService;
+    this.emailService = emailService;
 
-    // bind чтобы this работал в routes
     this.register = this.register.bind(this);
     this.login = this.login.bind(this);
     this.logout = this.logout.bind(this);
@@ -19,7 +19,6 @@ class AuthController {
         return res.status(400).json({ message: "All fields are required" });
       }
 
-      // проверка что email уникальный
       const existing = await this.userService.findByEmail(email);
       if (existing) {
         return res.status(400).json({ message: "User already exists" });
@@ -33,6 +32,10 @@ class AuthController {
         password: hashedPassword,
         role: "user"
       });
+
+      if (this.emailService) {
+        await this.emailService.sendWelcomeEmail(email, username);
+      }
 
       return res.status(201).json({
         message: "User registered successfully",

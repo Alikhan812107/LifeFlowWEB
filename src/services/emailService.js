@@ -1,73 +1,69 @@
-const { MailtrapClient } = require('mailtrap');
+const nodemailer = require("nodemailer");
 
 class EmailService {
   constructor() {
-    this.client = new MailtrapClient({
-      token: process.env.MAILTRAP_TOKEN
+    this.transporter = nodemailer.createTransport({
+      host: process.env.SMTP_HOST,
+      port: 587,
+      secure: false,
+      auth: {
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS,
+      },
     });
+
     this.sender = {
-      email: process.env.MAILTRAP_SENDER_EMAIL || 'hello@demomailtrap.com',
-      name: process.env.MAILTRAP_SENDER_NAME || 'LifeFlow'
+      email: process.env.SENDER_EMAIL || "noreply@danmurdan.shop",
+      name: process.env.SENDER_NAME || "LifeFlow",
     };
   }
 
-  async sendWelcomeEmail(email, username) {
+  async sendMail(options) {
     try {
-      await this.client.send({
-        from: this.sender,
-        to: [{ email }],
-        subject: 'Welcome to LifeFlow!',
-        text: `Welcome to LifeFlow, ${username}! Thank you for registering.`,
-        html: `
-          <h1>Welcome to LifeFlow, ${username}!</h1>
-          <p>Thank you for registering. Start managing your tasks, notes, and health data.</p>
-          <p>Best regards,<br>LifeFlow Team</p>
-        `,
-        category: 'Welcome'
+      await this.transporter.sendMail({
+        from: `"${this.sender.name}" <${this.sender.email}>`,
+        ...options,
       });
-      console.log(`Welcome email sent to ${email}`);
+      console.log("Email sent");
     } catch (err) {
-      console.error('Email send error:', err.message);
+      console.error("Email send error:", err.message);
     }
+  }
+
+  async sendWelcomeEmail(email, username) {
+    await this.sendMail({
+      to: email,
+      subject: "Welcome to LifeFlow!",
+      text: `Welcome to LifeFlow, ${username}!`,
+      html: `
+        <h1>Welcome to LifeFlow, ${username}!</h1>
+        <p>Thank you for registering.</p>
+      `,
+    });
   }
 
   async sendPasswordResetEmail(email, resetToken) {
-    try {
-      await this.client.send({
-        from: this.sender,
-        to: [{ email }],
-        subject: 'Password Reset Request',
-        text: `You requested a password reset. Use this token: ${resetToken}`,
-        html: `
-          <h1>Password Reset</h1>
-          <p>You requested a password reset. Use this token: <strong>${resetToken}</strong></p>
-          <p>If you didn't request this, please ignore this email.</p>
-        `,
-        category: 'Password Reset'
-      });
-      console.log(`Password reset email sent to ${email}`);
-    } catch (err) {
-      console.error('Email send error:', err.message);
-    }
+    await this.sendMail({
+      to: email,
+      subject: "Password Reset",
+      text: `Your token: ${resetToken}`,
+      html: `
+        <h1>Password Reset</h1>
+        <p>Your token: <b>${resetToken}</b></p>
+      `,
+    });
   }
 
   async sendTaskNotification(email, taskTitle) {
-    try {
-      await this.client.send({
-        from: this.sender,
-        to: [{ email }],
-        subject: 'Task Created',
-        text: `Your task "${taskTitle}" has been created successfully.`,
-        html: `
-          <h1>New Task Created</h1>
-          <p>Your task "<strong>${taskTitle}</strong>" has been created successfully.</p>
-        `,
-        category: 'Task Notification'
-      });
-      console.log(`Task notification sent to ${email}`);
-    } catch (err) {
-      console.error('Email send error:', err.message);
-    }
+    await this.sendMail({
+      to: email,
+      subject: "Task Created",
+      text: `Task "${taskTitle}" created`,
+      html: `
+        <h1>Task Created</h1>
+        <p>Task "<b>${taskTitle}</b>" created.</p>
+      `,
+    });
   }
 }
 
