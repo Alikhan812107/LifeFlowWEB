@@ -11,7 +11,6 @@ class UserService {
     return await this.repo.updateAvatar(id, avatar);
   }
 
-  //  ДЛЯ JWT
   async findByEmail(email) {
     return await this.repo.findByEmail(email);
   }
@@ -27,10 +26,10 @@ class UserService {
   async updateRole(userId, role) {
     return await this.repo.updateRole(userId, role);
   }
-}
-
-module.exports = UserService;
 
   async updateProfile(userId, data) {
     return await this.repo.updateProfile(userId, data);
   }
+}
+
+module.exports = UserService;
