@@ -8,7 +8,15 @@ class AdminController {
   getAllUsers = async (req, res) => {
     try {
       const users = await this.userService.getAllUsers();
-      res.json(users);
+      const usersWithoutAvatar = users.map(user => {
+        const { avatar, ...userWithoutAvatar } = user;
+        if (avatar) {
+          userWithoutAvatar.hasAvatar = true;
+          userWithoutAvatar.avatarPreview = avatar.substring(0, 50) + '...';
+        }
+        return userWithoutAvatar;
+      });
+      res.json(usersWithoutAvatar);
     } catch (err) {
       res.status(500).json({ message: err.message });
     }

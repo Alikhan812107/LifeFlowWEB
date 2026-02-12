@@ -13,9 +13,12 @@ const schemas = {
   }),
 
   task: Joi.object({
+    id: Joi.string().allow(''),
     title: Joi.string().min(1).max(200).required(),
     description: Joi.string().max(1000).allow(''),
-    done: Joi.boolean()
+    body: Joi.string().max(1000).allow(''),
+    folder: Joi.string().max(100).allow(''),
+    done: Joi.alternatives().try(Joi.boolean(), Joi.string().valid('on', 'off', 'true', 'false'))
   }),
 
   note: Joi.object({
@@ -46,7 +49,11 @@ const validate = (schemaName) => {
       return next();
     }
 
-    const { error } = schema.validate(req.body, { abortEarly: false });
+    const { error } = schema.validate(req.body, { 
+      abortEarly: false,
+      allowUnknown: true,
+      stripUnknown: false
+    });
     if (error) {
       const errors = error.details.map(detail => ({
         field: detail.path[0],
