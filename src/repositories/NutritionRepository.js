@@ -7,6 +7,7 @@ class NutritionRepository {
     await this.collection.insertOne(nutrition);
     return nutrition;
   }
+  
 
   async getAll(userId) {
     const filter = userId ? { user_id: userId } : {};

@@ -8,6 +8,7 @@ class Sleep {
     this.user_id = data.user_id;
     this.timestamp = data.timestamp || new Date();
   }
+  
 }
 
 module.exports = Sleep;

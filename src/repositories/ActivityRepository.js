@@ -7,6 +7,7 @@ class ActivityRepository {
     await this.collection.insertOne(activity);
     return activity;
   }
+  
 
   async getAll(userId) {
     const filter = userId ? { user_id: userId } : {};

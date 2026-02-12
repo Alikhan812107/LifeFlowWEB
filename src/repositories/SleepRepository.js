@@ -6,6 +6,7 @@ class SleepRepository {
   async create(sleep) {
     await this.collection.insertOne(sleep);
     return sleep;
+    
   }
 
   async getAll(userId) {

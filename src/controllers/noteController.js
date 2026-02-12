@@ -5,6 +5,7 @@ class NoteController {
     this.noteService = noteService;
   }
 
+  
   create = async (req, res) => {
     try {
       const note = new Note({...req.body, user_id: req.user.id});

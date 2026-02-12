@@ -4,6 +4,7 @@ class NoteRepository {
   constructor(collection) {
     this.collection = collection;
   }
+  
 
   async create(note) {
     await this.collection.insertOne(note);

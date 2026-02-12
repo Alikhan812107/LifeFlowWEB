@@ -11,6 +11,7 @@ module.exports = (req, res, next) => {
   } else if (token) {
     tokenToVerify = token;
   }
+  
 
   if (!tokenToVerify) {
     if (req.path.startsWith('/api/')) {

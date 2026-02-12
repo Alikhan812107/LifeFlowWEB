@@ -7,6 +7,9 @@ class Note {
     this.description = data.description;
     this.user_id = data.user_id;
   }
+  
 }
+
+
 
 module.exports = Note;

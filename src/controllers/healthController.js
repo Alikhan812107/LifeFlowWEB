@@ -7,7 +7,7 @@ class HealthController {
     this.sleepService = sleepService;
     this.nutritionService = nutritionService;
     this.activityService = activityService;
-  }
+  } 
 
   viewHTML = async (req, res) => {
     try {

@@ -8,6 +8,7 @@ class Nutrition {
     this.healthy = data.healthy;
     this.user_id = data.user_id;
     this.timestamp = data.timestamp || new Date();
+    
   }
 }
 
